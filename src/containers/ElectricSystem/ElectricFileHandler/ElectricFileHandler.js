@@ -4,7 +4,12 @@ import $ from "jquery";
 class ElectricFileHandler extends Component {
   state = {
     data: null,
-    error: null
+    error: null,
+    breakers: null,
+    machines: null,
+    lines: null,
+    loads: null,
+    transformers: null
   };
   inputElement = React.createRef();
 
@@ -18,10 +23,33 @@ class ElectricFileHandler extends Component {
       });
       let xml = $.parseXML(text);
       xml = $(xml);
-      let test = xml.find(`[inkscape\\:label=\\#bk]`);
-      console.log(test);
+      let allBreakers = xml.find(`[inkscape\\:label=\\#bk]`).toArray();
+      let allMachines = xml.find(`[inkscape\\:label=\\#m]`).toArray();
+      let allLines = xml.find(`[inkscape\\:label=\\#ln]`).toArray();
+      let allLoads = xml.find(`[inkscape\\:label=\\#Ld]`).toArray();
+      let allTransformers = xml.find(`[inkscape\\:label=\\#xfr]`).toArray();
+      console.log(
+        allBreakers,
+        allLines,
+        allLoads,
+        allMachines,
+        allTransformers
+      );
+      let breakersData = allBreakers.map(element => element.outerHTML);
+      let machinesData = allMachines.map(element => element.outerHTML);
+      let linesData = allLines.map(element => element.outerHTML);
+      let loadsData = allLoads.map(element => element.outerHTML);
+      let transformersData = allTransformers.map(element => element.outerHTML);
+      console.log(breakersData);
+      this.setState({
+        breakers: breakersData,
+        machines: machinesData,
+        lines: linesData,
+        loads: loadsData,
+        transformers: transformersData
+      });
     };
-    if (svg_file.type === "image/svg+xml") {
+    if (svg_file && svg_file.type === "image/svg+xml") {
       reader.readAsText(svg_file);
     } else {
       this.setState({
@@ -34,15 +62,23 @@ class ElectricFileHandler extends Component {
     // console.log(elm[0]);
   };
 
-  getData = () => {
-    console.log(this.state.reader.result);
-  };
   render() {
+    let svg_components = [].concat(
+      this.state.breakers,
+      this.state.lines,
+      this.state.loads,
+      this.state.machines,
+      this.state.transformers
+    );
     return (
       <div>
         <input id="file-inp" type="file" ref={this.inputElement} />
         <input type="button" value="Load" onClick={this.onFileLoad} />
-        <input type="button" value="Data" onClick={this.getData} />
+        <svg
+          width="100%"
+          height="100vh"
+          dangerouslySetInnerHTML={{ __html: svg_components.join("") }}
+        />
       </div>
     );
   }
