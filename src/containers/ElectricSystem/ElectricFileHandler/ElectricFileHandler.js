@@ -1,5 +1,14 @@
 import React, { Component } from "react";
 import $ from "jquery";
+import { connect } from "react-redux";
+
+import Breaker from "../../../components/ElectricParts/Breaker/Breaker";
+import Transformer from "../../../components/ElectricParts/Transformer/Transformer";
+import Machine from "../../../components/ElectricParts/Machine/Machine";
+import Line from "../../../components/ElectricParts/Line/Line";
+import Load from "../../../components/ElectricParts/Load/Load";
+import Bus from "../../../components/ElectricParts/Bus/Bus";
+import * as actions from "../../../store/actions";
 
 class ElectricFileHandler extends Component {
   state = {
@@ -8,6 +17,7 @@ class ElectricFileHandler extends Component {
     breakers: null,
     machines: null,
     lines: null,
+    buses: null,
     loads: null,
     transformers: null
   };
@@ -28,26 +38,42 @@ class ElectricFileHandler extends Component {
       let allLines = xml.find(`[inkscape\\:label=\\#ln]`).toArray();
       let allLoads = xml.find(`[inkscape\\:label=\\#Ld]`).toArray();
       let allTransformers = xml.find(`[inkscape\\:label=\\#xfr]`).toArray();
-      console.log(
-        allBreakers,
-        allLines,
-        allLoads,
-        allMachines,
-        allTransformers
+      let allBuses = xml.find(`[inkscape\\:label=\\#bus]`).toArray();
+
+      // console.log(
+      //   allBreakers,
+      //   allLines,
+      //   allLoads,
+      //   allMachines,
+      //   allTransformers
+      // );
+      let breakersData = allBreakers.map((element, i) => (
+        <Breaker key={"bk" + i} innerHTML={element.outerHTML} />
+      ));
+      let machinesData = allMachines.map((element, i) => (
+        <Machine key={"m" + i} innerHTML={element.outerHTML} />
+      ));
+      let linesData = allLines.map((element, i) => (
+        <Line key={"ln" + i} innerHTML={element.outerHTML} />
+      ));
+      let loadsData = allLoads.map((element, i) => (
+        <Load key={"Ld" + i} innerHTML={element.outerHTML} />
+      ));
+      let transformersData = allTransformers.map((element, i) => (
+        <Transformer key={"xf" + i} innerHTML={element.outerHTML} />
+      ));
+      let busesData = allBuses.map((element, i) => (
+        <Bus key={"bus" + i} innerHTML={element.outerHTML} />
+      ));
+      // console.log(breakersData);
+      this.props.setComponents(
+        machinesData,
+        loadsData,
+        transformersData,
+        busesData,
+        linesData,
+        breakersData
       );
-      let breakersData = allBreakers.map(element => element.outerHTML);
-      let machinesData = allMachines.map(element => element.outerHTML);
-      let linesData = allLines.map(element => element.outerHTML);
-      let loadsData = allLoads.map(element => element.outerHTML);
-      let transformersData = allTransformers.map(element => element.outerHTML);
-      console.log(breakersData);
-      this.setState({
-        breakers: breakersData,
-        machines: machinesData,
-        lines: linesData,
-        loads: loadsData,
-        transformers: transformersData
-      });
     };
     if (svg_file && svg_file.type === "image/svg+xml") {
       reader.readAsText(svg_file);
@@ -63,25 +89,34 @@ class ElectricFileHandler extends Component {
   };
 
   render() {
-    let svg_components = [].concat(
-      this.state.breakers,
-      this.state.lines,
-      this.state.loads,
-      this.state.machines,
-      this.state.transformers
-    );
     return (
       <div>
         <input id="file-inp" type="file" ref={this.inputElement} />
         <input type="button" value="Load" onClick={this.onFileLoad} />
-        <svg
-          width="100%"
-          height="100vh"
-          dangerouslySetInnerHTML={{ __html: svg_components.join("") }}
-        />
       </div>
     );
   }
 }
-
-export default ElectricFileHandler;
+const mapStatetoProps = state => ({
+  ...state
+});
+const mapDispatchToProps = dispatch => {
+  return {
+    setComponents: (machines, loads, transformers, buses, lines, breakers) => {
+      dispatch(
+        actions.setComponents(
+          machines,
+          loads,
+          transformers,
+          buses,
+          lines,
+          breakers
+        )
+      );
+    }
+  };
+};
+export default connect(
+  mapStatetoProps,
+  mapDispatchToProps
+)(ElectricFileHandler);
